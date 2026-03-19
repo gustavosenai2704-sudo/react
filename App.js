@@ -5,12 +5,12 @@ import Login from "./page/login";
 import Cadastro from "./page/cadastro";
 import Splash from "./page/splash";
 import home from "./page/home";
-import usuario from"./page/usuario";
+import usuario from "./page/usuario";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 export default function App() {
   
-  const Stack = createDrawerNavigator();
+  const Drawer = createDrawerNavigator();
   
   const myTheme = {
     ...DefaultTheme,
@@ -34,36 +34,59 @@ export default function App() {
       </View>
 
       <NavigationContainer theme={myTheme}>
-        <Stack.Navigator initialRouteName="Splash">
-          <Stack.Screen 
+        <Drawer.Navigator initialRouteName="Splash">
+          {/* Splash - não aparece no menu e não tem ícone de menu */}
+          <Drawer.Screen 
             name="Splash" 
             component={Splash} 
-            options={{ headerTintColor: "yellow", headerTitle: '', headerTransparent: true }} 
+            options={{ 
+              headerTintColor: "yellow", 
+              headerTitle: '', 
+              headerTransparent: true,
+              drawerLabel: () => null,
+              drawerItemStyle: { display: 'none' },
+              swipeEnabled: false,
+            }} 
           />
-          <Stack.Screen 
+          
+          {/* Outras telas - mantém o menu normal */}
+          <Drawer.Screen 
             name="Login" 
             component={Login} 
-             options={{ headerTintColor: "yellow", headerTitle: '', headerTransparent: true }} 
+            options={{ 
+              headerTintColor: "yellow", 
+              headerTitle: '', 
+              headerTransparent: true,
+            }} 
           />
-          <Stack.Screen 
+          <Drawer.Screen 
             name="Cadastro" 
             component={Cadastro} 
-           options={{ headerTintColor: "yellow", headerTitle: '', headerTransparent: true }} 
+            options={{ 
+              headerTintColor: "yellow", 
+              headerTitle: '', 
+              headerTransparent: true,
+            }} 
           />
-          <Stack.Screen 
+          <Drawer.Screen 
             name="home" 
             component={home} 
-            options={{ headerTintColor: "yellow", headerTitle: '', headerTransparent: true }} 
-            
+            options={{ 
+              headerTintColor: "yellow", 
+              headerTitle: '', 
+              headerTransparent: true,
+            }} 
           />
-
-            <Stack.Screen 
+          <Drawer.Screen 
             name="usuario" 
             component={usuario} 
-            options={{ headerTintColor: "yellow", headerTitle: '', headerTransparent: true }} 
-            
+            options={{ 
+              headerTintColor: "yellow", 
+              headerTitle: '', 
+              headerTransparent: true,
+            }} 
           />
-        </Stack.Navigator>
+        </Drawer.Navigator>
       </NavigationContainer>
     </View>
     </SafeAreaProvider>
@@ -80,7 +103,6 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.8)",
     borderBottomWidth: 1,
     borderBottomColor: "#FFD700",
-    //width: "100%",
     zIndex: 10,
   },
   logoContainer: {
