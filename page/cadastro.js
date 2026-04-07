@@ -1,3 +1,4 @@
+import axios from "axios";
 import { useState } from "react";
 import {
   View,
@@ -13,43 +14,66 @@ export default function Cadastro({ navigation }) {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
-  const [confirmarSenha, setConfirmarSenha] = useState("");
-  const [data, setdata] = useState("");
-  const telefone, settelefone] = useState("");
+ // const [confirmarSenha, setConfirmarSenha] = useState("");
+  const [telefone, settelefone] = useState("");
+  const [nascimento, setnascimento] = useState("");
+  const [genero, setgenero] = useState("");
+  
 
 
-
-  function cadastrar() {
-    if (nome === "" || email === "" || senha === "" || confirmarSenha === "") {
-
-      Alert.alert("ERRO", "Favor preencher todos os campos");
-
-
-    } else if (senha !== confirmarSenha) {
-
-
-      Alert.alert("ERRO", "As senhas nao coincidem");
-
-    } else {
-
-      Alert.alert("Sucesso!", "Cadastro realizado com sucesso!");
-      navigation.navigate("Cep");
-    }
-  }
-
-  function formaApi(data){
+       function formaApi(data){
 
       const [dia, mes, ano] = data.split("/");
       return `${ano}-${mes}-${dia}`;
 
+}
 
 
-  }
+     const values ={
 
-  function irParaLogin() {
-    navigation.navigate("Login");
-  }
+      nome:nome,
+      email:email,
+      senha:senha,
+      telefone:telefone,
+      nascimento:formaApi(nascimento),
+      genero:genero,
 
+    }
+
+
+      async function Cadastrar() {
+
+        if(nome === "" || email === "" || senha === "" || telefone === "" || nascimento === "" || genero === ""){
+        
+        Alert.alert("ERRO", "Favor preencher todos os campos!");
+
+             } else {
+
+              try{
+
+
+                  const response = await axios.post("http://10.0.2.2:8000/api/cadastro_de_usuario",values);
+                  console.log(response.data)
+
+                  alert.alert("Sucesso!", "Usuario Cadastrado com Sucesso!");
+                  navigation.navigate("Login");
+
+
+              }catch(error){
+
+                console.log("ERRO", error.response.data.errors);
+
+
+
+
+
+              }
+
+            }
+
+          }
+
+       
   return (
     <ImageBackground
       source={{
@@ -63,7 +87,7 @@ export default function Cadastro({ navigation }) {
 
           <TextInput
             style={styles.input}
-            placeholder="Nome completo"
+            placeholder="Nome completo" 
             placeholderTextColor="#000000ea"
             value={nome}
             onChangeText={setNome}
@@ -88,20 +112,49 @@ export default function Cadastro({ navigation }) {
             onChangeText={setSenha}
           />
 
-          <TextInput
+          {/* <TextInput
             style={styles.input}
             placeholder="Confirmar senha"
             placeholderTextColor="#000000"
             secureTextEntry
             value={confirmarSenha}
             onChangeText={setConfirmarSenha}
+          /> */}
+
+            <TextInput
+            style={styles.input}
+            placeholder="telefone"
+            placeholderTextColor="#000000"
+            secureTextEntry
+            value={telefone}
+            onChangeText={settelefone}
           />
 
-          <TouchableOpacity style={styles.button} onPress={cadastrar}>
+            <TextInput
+            style={styles.input}
+            placeholder="Nascimento"
+            placeholderTextColor="#000000"
+            secureTextEntry
+            value={nascimento}
+            onChangeText={setnascimento}
+          />
+
+            <TextInput
+            style={styles.input}
+            placeholder="genero"
+            placeholderTextColor="#000000"
+            secureTextEntry
+            value={genero}
+            onChangeText={setgenero}
+          />
+
+
+
+          <TouchableOpacity style={styles.button} onPress={Cadastrar}>
             <Text style={styles.buttonText}>CADASTRAR</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.linkButton} onPress={irParaLogin}>
+          <TouchableOpacity style={styles.linkButton} onPress={()=>navigation.replace("Login")}>
             <Text style={styles.linkText}>Ja tem uma conta? Faca login</Text>
           </TouchableOpacity>
         </View>
