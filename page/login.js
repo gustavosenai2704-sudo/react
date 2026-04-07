@@ -10,61 +10,39 @@ import {
   StyleSheet,
 } from "react-native";
 
-import { useFonts } from "expo-font";
-
-export default function Login({navigation}) {
-
+export default function Login({ navigation }) {
   const [user, setUser] = useState("");
   const [pass, setPass] = useState("");
 
-  function logar(){
-    if (user === "" || pass === ""){
-      Alert.alert("Erro", "Favor preencher todos os campos");
-    } else if (user === "Lucas" && pass === "123"){
-      Alert.alert("Sucesso!", "Usuario Logado com sucesso!");
-      navigation.navigate("Cadastro");
+  function Logar() {
+    if (user === "" || pass === "") {
+      Alert.alert("ERRO", "Favor preencher todos os campos!");
+    } else if (user === "Lucas" && pass === "123") {
+      Alert.alert("Sucesso!", "Usuario logado com sucesso!");
+      navigation.navigate("Cep");
     } else {
-      Alert.alert("Erro!", "Usuario não Cadastrado!");
+      Alert.alert("ERRO!", "Usuario nao cadastrado!");
     }
   }
 
-  const nav = ()=>{
+  const nav = () => {
     navigation.navigate("Cadastro");
-  }
-
-  const [font] = useFonts({
-    'spider': require('../assets/fonts/spider.ttf')
-  });
-
-  if(!font){
-    return null;
-  }
+  };
 
   return (
     <ImageBackground
       source={{
-        uri: "https://images.unsplash.com/photo-1503376780353-7e6692767b70",
+        uri: "https://blog.shoppub.com.br/wp-content/uploads/2025/02/faixa-de-CEP-scaled.jpg",
       }}
       style={styles.background}
-      blurRadius={4}
     >
       <View style={styles.overlay}>
         <View style={styles.card}>
-
-          {/* 🚗 Logo WL Cars */}
-          <View style={styles.logoContainer}>
-            <Text style={styles.logoWL}>WL</Text>
-            <Text style={styles.logoCars}>Cars</Text>
-          </View>
-
-          <Text style={styles.title}>Bem-vindo</Text>
-          <Text style={styles.subtitle}>
-            Acesse sua conta
-          </Text>
+          <Text style={styles.title}>Faca seu login</Text>
 
           <TextInput
-            placeholder="Usuário"
-            placeholderTextColor="#888"
+            placeholder="Usuario"
+            placeholderTextColor="#000000"
             style={styles.input}
             value={user}
             onChangeText={setUser}
@@ -72,21 +50,20 @@ export default function Login({navigation}) {
 
           <TextInput
             placeholder="Senha"
-            placeholderTextColor="#888"
+            placeholderTextColor="#000000"
             secureTextEntry
             style={styles.input}
             value={pass}
             onChangeText={setPass}
           />
 
-          <TouchableOpacity style={styles.loginBtn} onPress={logar}>
-            <Text style={styles.loginBtnText}>Entrar</Text>
+          <TouchableOpacity style={styles.botao} onPress={Logar}>
+            <Text style={styles.txtBotao}>Entrar</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.button} onPress={nav}>
-            <Text style={styles.buttonText}>Cadastrar</Text>
+          <TouchableOpacity onPress={nav}>
+            <Text style={styles.link}>Nao tem conta? Cadastre-se</Text>
           </TouchableOpacity>
-
         </View>
       </View>
     </ImageBackground>
@@ -97,100 +74,49 @@ const styles = StyleSheet.create({
   background: {
     flex: 1,
   },
-
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(10,10,10,0.85)",
+    backgroundColor: "rgba(22, 27, 4, 0.6)",
     justifyContent: "center",
-    padding: 25,
+    padding: 20,
   },
-
   card: {
-    backgroundColor: "#111",
-    padding: 30,
-    borderRadius: 25,
-    borderWidth: 1,
-    borderColor: "#FFD700",
-    shadowColor: "#FFD700",
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 10,
+    backgroundColor: "#000000b2",
+    padding: 25,
+    borderRadius: 10,
   },
-
-  /* 🚗 Logo */
-  logoContainer: {
-    alignItems: "center",
-    marginBottom: 25,
-  },
-
-  logoWL: {
-    fontSize: 40,
-    fontWeight: "bold",
-    color: "#FFD700",
-    letterSpacing: 4,
-  },
-
-  logoCars: {
-    fontSize: 16,
-    color: "#fff",
-    letterSpacing: 2,
-    marginTop: -5,
-  },
-
   title: {
     fontSize: 24,
-    fontWeight: "600",
-    color: "#fff",
-    textAlign: "center",
-    marginBottom: 5,
-    fontFamily: "spider",
-  },
-
-  subtitle: {
-    fontSize: 14,
-    color: "#aaa",
+    fontWeight: "bold",
     textAlign: "center",
     marginBottom: 25,
+    color: "#ffffff",
   },
-
   input: {
-    backgroundColor: "#1c1c1c",
-    padding: 15,
-    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#ffffff",
+    padding: 12,
+    borderRadius: 8,
+    fontSize: 16,
     marginBottom: 15,
-    fontSize: 16,
-    color: "#fff",
-    borderWidth: 1,
-    borderColor: "#333",
+    backgroundColor: "#fbff00",
   },
-
-  loginBtn: {
-    backgroundColor: "#FFD700",
-    padding: 15,
-    borderRadius: 12,
+  botao: {
+    backgroundColor: "#f8f8f8",
+    padding: 12,
+    borderRadius: 8,
     alignItems: "center",
     marginTop: 10,
   },
-
-  loginBtnText: {
-    color: "#000",
+  txtBotao: {
+    color: "#000000",
     fontSize: 16,
     fontWeight: "bold",
   },
-
-  button: {
-    backgroundColor: "#333",
-    padding: 15,
-    borderRadius: 12,
-    alignItems: "center",
-    marginTop: 10,
-    borderWidth: 1,
-    borderColor: "#FFD700",
-  },
-
-  buttonText: {
-    color: "#FFD700",
-    fontSize: 16,
-    fontWeight: "bold",
+  link: {
+    color: "#ffffff",
+    textAlign: "center",
+    marginTop: 15,
+    fontSize: 14,
   },
 });
