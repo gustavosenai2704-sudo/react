@@ -1,122 +1,225 @@
-import { useState } from "react";
-import React from "react";
-import { Alert } from "react-native";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ImageBackground,
-  StyleSheet,
-} from "react-native";
+import React, { useState } from "react";
+import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import api, { getApiErrorMessage, setAuthorizationToken } from "../services/api.js";
+import { saveAuthSession } from "../services/authStore.js";
 
 export default function Login({ navigation }) {
   const [user, setUser] = useState("");
   const [pass, setPass] = useState("");
 
-  function Logar() {
+  async function Logar() {
     if (user === "" || pass === "") {
       Alert.alert("ERRO", "Favor preencher todos os campos!");
-    } else if (user === "Lucas" && pass === "123") {
+      return;
+    }
+
+    try {
+      const response = await api.post("/login", {
+        email: user,
+        senha: pass,
+      });
+
+      const token = response.data?.token;
+
+      if (!token) {
+        Alert.alert("ERRO", "A API nao retornou o token do usuario.");
+        return;
+      }
+
+      setAuthorizationToken(token);
+
+      const validationResponse = await api.get("/validar_token");
+
+      if (validationResponse.data?.valid === false) {
+        setAuthorizationToken(null);
+        Alert.alert("ERRO", "Token invalido. Faca login novamente.");
+        return;
+      }
+
+      await saveAuthSession({
+        token,
+        user: validationResponse.data?.user || response.data.user || null,
+      });
+
       Alert.alert("Sucesso!", "Usuario logado com sucesso!");
       navigation.navigate("Cep");
-    } else {
-      Alert.alert("ERRO!", "Usuario nao cadastrado!");
+    } catch (error) {
+      setAuthorizationToken(null);
+      const errorMessage = getApiErrorMessage(error, "Usuario nao cadastrado!");
+      Alert.alert("ERRO!", String(errorMessage));
     }
   }
 
-  const nav = () => {
-    navigation.navigate("Cadastro");
-  };
-
   return (
-    <ImageBackground
-      source={{
-        uri: "https://blog.shoppub.com.br/wp-content/uploads/2025/02/faixa-de-CEP-scaled.jpg",
-      }}
-      style={styles.background}
-    >
-      <View style={styles.overlay}>
-        <View style={styles.card}>
-          <Text style={styles.title}>Faca seu login</Text>
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <View style={styles.headerBadge}>
+          <Text style={styles.headerBadgeText}>CLIMA AO VIVO</Text>
+        </View>
 
-          <TextInput
-            placeholder="Usuario"
-            placeholderTextColor="#000000"
-            style={styles.input}
-            value={user}
-            onChangeText={setUser}
-          />
+        <Text style={styles.title}>Acesse sua previsao pessoal</Text>
+        <Text style={styles.subtitle}>
+          Entre para acompanhar clima, noticias e alertas em um painel leve como a tela inicial.
+        </Text>
 
-          <TextInput
-            placeholder="Senha"
-            placeholderTextColor="#000000"
-            secureTextEntry
-            style={styles.input}
-            value={pass}
-            onChangeText={setPass}
-          />
+        <View style={styles.weatherCard}>
+          <View>
+            <Text style={styles.weatherTemp}>27°C</Text>
+            <Text style={styles.weatherText}>Céu limpo para hoje</Text>
+          </View>
 
-          <TouchableOpacity style={styles.botao} onPress={Logar}>
-            <Text style={styles.txtBotao}>Entrar</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={nav}>
-            <Text style={styles.link}>Nao tem conta? Cadastre-se</Text>
-          </TouchableOpacity>
+          <View style={styles.weatherMeta}>
+            <Text style={styles.weatherDetail}>Vento 12 km/h</Text>
+            <Text style={styles.weatherDetail}>Umidade 61%</Text>
+          </View>
         </View>
       </View>
-    </ImageBackground>
+
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Faca seu login</Text>
+        <Text style={styles.cardSubtitle}>Use sua conta para continuar.</Text>
+
+        <TextInput
+          placeholder="Email"
+          placeholderTextColor="#6b7280"
+          style={styles.input}
+          value={user}
+          onChangeText={setUser}
+          autoCapitalize="none"
+        />
+
+        <TextInput
+          placeholder="Senha"
+          placeholderTextColor="#6b7280"
+          secureTextEntry
+          style={styles.input}
+          value={pass}
+          onChangeText={setPass}
+        />
+
+        <TouchableOpacity style={styles.primaryButton} onPress={Logar}>
+          <Text style={styles.primaryButtonText}>Entrar</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.secondaryButton} onPress={() => navigation.navigate("Cadastro")}>
+          <Text style={styles.secondaryButtonText}>Nao tem conta? Cadastre-se</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  background: {
+  container: {
     flex: 1,
-  },
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(22, 27, 4, 0.6)",
-    justifyContent: "center",
+    backgroundColor: "#f3f4f6",
     padding: 20,
+    justifyContent: "center",
   },
-  card: {
-    backgroundColor: "#000000b2",
-    padding: 25,
-    borderRadius: 10,
+  header: {
+    backgroundColor: "#2563eb",
+    borderRadius: 30,
+    padding: 24,
+    marginBottom: 18,
+  },
+  headerBadge: {
+    alignSelf: "flex-start",
+    backgroundColor: "#ffffff24",
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginBottom: 14,
+  },
+  headerBadgeText: {
+    color: "#eff6ff",
+    fontSize: 12,
+    fontWeight: "700",
+    letterSpacing: 0.6,
   },
   title: {
+    color: "#ffffff",
+    fontSize: 28,
+    fontWeight: "bold",
+    marginBottom: 8,
+  },
+  subtitle: {
+    color: "#dbeafe",
+    fontSize: 15,
+    lineHeight: 22,
+    marginBottom: 18,
+  },
+  weatherCard: {
+    backgroundColor: "#ffffff20",
+    borderRadius: 20,
+    padding: 16,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  weatherTemp: {
+    color: "#ffffff",
+    fontSize: 28,
+    fontWeight: "bold",
+  },
+  weatherText: {
+    color: "#dbeafe",
+    marginTop: 4,
+  },
+  weatherMeta: {
+    alignItems: "flex-end",
+  },
+  weatherDetail: {
+    color: "#eff6ff",
+    fontSize: 13,
+    marginBottom: 4,
+  },
+  card: {
+    backgroundColor: "#ffffff",
+    borderRadius: 28,
+    padding: 22,
+    elevation: 4,
+  },
+  cardTitle: {
+    color: "#111827",
     fontSize: 24,
     fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: 25,
-    color: "#ffffff",
+    marginBottom: 6,
+  },
+  cardSubtitle: {
+    color: "#6b7280",
+    fontSize: 14,
+    marginBottom: 18,
   },
   input: {
+    backgroundColor: "#eff6ff",
     borderWidth: 1,
-    borderColor: "#ffffff",
-    padding: 12,
-    borderRadius: 8,
+    borderColor: "#bfdbfe",
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     fontSize: 16,
-    marginBottom: 15,
-    backgroundColor: "#fbff00",
+    color: "#111827",
+    marginBottom: 14,
   },
-  botao: {
-    backgroundColor: "#f8f8f8",
-    padding: 12,
-    borderRadius: 8,
+  primaryButton: {
+    backgroundColor: "#2563eb",
+    borderRadius: 16,
+    paddingVertical: 15,
     alignItems: "center",
-    marginTop: 10,
+    marginTop: 4,
   },
-  txtBotao: {
-    color: "#000000",
+  primaryButtonText: {
+    color: "#ffffff",
     fontSize: 16,
     fontWeight: "bold",
   },
-  link: {
-    color: "#ffffff",
-    textAlign: "center",
-    marginTop: 15,
+  secondaryButton: {
+    alignItems: "center",
+    marginTop: 16,
+  },
+  secondaryButtonText: {
+    color: "#2563eb",
     fontSize: 14,
+    fontWeight: "600",
   },
 });

@@ -1,218 +1,271 @@
-import axios from "axios";
 import { useState } from "react";
-import {
-  View,
-  TextInput,
-  TouchableOpacity,
-  Text,
-  StyleSheet,
-  Alert,
-  ImageBackground,
-} from "react-native";
+import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import api, { getApiErrorMessage } from "../services/api.js";
+import { saveAuthSession } from "../services/authStore.js";
 
 export default function Cadastro({ navigation }) {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
- // const [confirmarSenha, setConfirmarSenha] = useState("");
   const [telefone, settelefone] = useState("");
   const [nascimento, setnascimento] = useState("");
   const [genero, setgenero] = useState("");
-  
 
+  function formaApi(data) {
+    const [dia, mes, ano] = data.split("/");
+    return `${ano}-${mes}-${dia}`;
+  }
 
-       function formaApi(data){
-
-      const [dia, mes, ano] = data.split("/");
-      return `${ano}-${mes}-${dia}`;
-
-}
-
-
-     const values ={
-
-      nome:nome,
-      email:email,
-      senha:senha,
-      telefone:telefone,
-      nascimento:formaApi(nascimento),
-      genero:genero,
-
+  async function Cadastrar() {
+    if (nome === "" || email === "" || senha === "" || telefone === "" || nascimento === "" || genero === "") {
+      Alert.alert("ERRO", "Favor preencher todos os campos!");
+      return;
     }
 
+    if (nascimento.split("/").length !== 3) {
+      Alert.alert("ERRO", "Digite a data no formato dd/mm/aaaa.");
+      return;
+    }
 
-      async function Cadastrar() {
+    const values = {
+      nome: nome,
+      email: email,
+      senha: senha,
+      telefone: telefone,
+      nascimento: formaApi(nascimento),
+      genero: genero,
+    };
 
-        if(nome === "" || email === "" || senha === "" || telefone === "" || nascimento === "" || genero === ""){
-        
-        Alert.alert("ERRO", "Favor preencher todos os campos!");
+    console.log("Dados enviados:", values);
 
-             } else {
+    try {
+      const response = await api.post("/cadastro_usuario", values);
+      console.log("Resposta da API:", response.data);
 
-              try{
+      if (!response.data?.token) {
+        Alert.alert("ERRO", "A API cadastrou o usuario, mas nao retornou o token.");
+        return;
+      }
 
+      await saveAuthSession({
+        token: response.data.token,
+        user: response.data.user || {
+          nome: values.nome,
+          email: values.email,
+        },
+      });
 
-                  const response = await axios.post("http://10.0.2.2:8000/api/cadastro_de_usuario",values);
-                  console.log(response.data)
+      Alert.alert("Sucesso!", "Usuario cadastrado e autenticado com sucesso!");
+      navigation.navigate("Cep");
+    } catch (error) {
+      const errorMessage = getApiErrorMessage(error, "Nao foi possivel cadastrar o usuario.");
 
-                  alert.alert("Sucesso!", "Usuario Cadastrado com Sucesso!");
-                  navigation.navigate("Login");
+      console.log("Erro completo:", error.response?.data || error.message);
+      Alert.alert("ERRO", String(errorMessage));
+    }
+  }
 
-
-              }catch(error){
-
-                console.log("ERRO", error.response.data.errors);
-
-
-
-
-
-              }
-
-            }
-
-          }
-
-       
   return (
-    <ImageBackground
-      source={{
-        uri: "https://blog.shoppub.com.br/wp-content/uploads/2025/02/faixa-de-CEP-scaled.jpg",
-      }}
-      style={styles.background}
-    >
-      <View style={styles.overlay}>
-        <View style={styles.container}>
-          <Text style={styles.titulo}>CRIAR CONTA</Text>
+    <ScrollView style={styles.screen} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <View style={styles.header}>
+        <View style={styles.headerPill}>
+          <Text style={styles.headerPillText}>NOVA CONTA</Text>
+        </View>
 
-          <TextInput
-            style={styles.input}
-            placeholder="Nome completo" 
-            placeholderTextColor="#000000ea"
-            value={nome}
-            onChangeText={setNome}
-          />
+        <Text style={styles.title}>Monte seu perfil meteorologico</Text>
+        <Text style={styles.subtitle}>
+          Cadastre-se para salvar consultas, acompanhar o tempo e receber destaques no mesmo estilo da home.
+        </Text>
 
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            placeholderTextColor="#000000"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            value={email}
-            onChangeText={setEmail}
-          />
+        <View style={styles.headerInfo}>
+          <View style={styles.infoBox}>
+            <Text style={styles.infoLabel}>Hoje</Text>
+            <Text style={styles.infoValue}>Max 29°C</Text>
+          </View>
 
-          <TextInput
-            style={styles.input}
-            placeholder="Senha"
-            placeholderTextColor="#000000"
-            secureTextEntry
-            value={senha}
-            onChangeText={setSenha}
-          />
-
-          {/* <TextInput
-            style={styles.input}
-            placeholder="Confirmar senha"
-            placeholderTextColor="#000000"
-            secureTextEntry
-            value={confirmarSenha}
-            onChangeText={setConfirmarSenha}
-          /> */}
-
-            <TextInput
-            style={styles.input}
-            placeholder="telefone"
-            placeholderTextColor="#000000"
-            secureTextEntry
-            value={telefone}
-            onChangeText={settelefone}
-          />
-
-            <TextInput
-            style={styles.input}
-            placeholder="Nascimento"
-            placeholderTextColor="#000000"
-            secureTextEntry
-            value={nascimento}
-            onChangeText={setnascimento}
-          />
-
-            <TextInput
-            style={styles.input}
-            placeholder="genero"
-            placeholderTextColor="#000000"
-            secureTextEntry
-            value={genero}
-            onChangeText={setgenero}
-          />
-
-
-
-          <TouchableOpacity style={styles.button} onPress={Cadastrar}>
-            <Text style={styles.buttonText}>CADASTRAR</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.linkButton} onPress={()=>navigation.replace("Login")}>
-            <Text style={styles.linkText}>Ja tem uma conta? Faca login</Text>
-          </TouchableOpacity>
+          <View style={styles.infoBox}>
+            <Text style={styles.infoLabel}>Amanhã</Text>
+            <Text style={styles.infoValue}>Chance de chuva</Text>
+          </View>
         </View>
       </View>
-    </ImageBackground>
+
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Criar conta</Text>
+        <Text style={styles.cardSubtitle}>Preencha seus dados para entrar no painel.</Text>
+
+        <TextInput
+          style={styles.input}
+          placeholder="Nome completo"
+          placeholderTextColor="#6b7280"
+          value={nome}
+          onChangeText={setNome}
+        />
+
+        <TextInput
+          style={styles.input}
+          placeholder="Email"
+          placeholderTextColor="#6b7280"
+          keyboardType="email-address"
+          autoCapitalize="none"
+          value={email}
+          onChangeText={setEmail}
+        />
+
+        <TextInput
+          style={styles.input}
+          placeholder="Senha"
+          placeholderTextColor="#6b7280"
+          secureTextEntry
+          value={senha}
+          onChangeText={setSenha}
+        />
+
+        <TextInput
+          style={styles.input}
+          placeholder="Telefone"
+          placeholderTextColor="#6b7280"
+          keyboardType="phone-pad"
+          value={telefone}
+          onChangeText={settelefone}
+        />
+
+        <TextInput
+          style={styles.input}
+          placeholder="Nascimento (dd/mm/aaaa)"
+          placeholderTextColor="#6b7280"
+          value={nascimento}
+          onChangeText={setnascimento}
+        />
+
+        <TextInput
+          style={styles.input}
+          placeholder="Genero"
+          placeholderTextColor="#6b7280"
+          value={genero}
+          onChangeText={setgenero}
+        />
+
+        <TouchableOpacity style={styles.primaryButton} onPress={Cadastrar}>
+          <Text style={styles.primaryButtonText}>Cadastrar</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.secondaryButton} onPress={() => navigation.navigate("Login")}>
+          <Text style={styles.secondaryButtonText}>Ja tem uma conta? Faca login</Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  background: {
+  screen: {
     flex: 1,
+    backgroundColor: "#f3f4f6",
   },
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.7)",
-    justifyContent: "center",
-    padding: 25,
+  content: {
+    padding: 20,
   },
-  container: {
-    backgroundColor: "#111",
-    padding: 25,
-    borderRadius: 10,
+  header: {
+    backgroundColor: "#2563eb",
+    borderRadius: 30,
+    padding: 24,
+    marginBottom: 18,
   },
-  titulo: {
+  headerPill: {
+    alignSelf: "flex-start",
+    backgroundColor: "#ffffff24",
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginBottom: 14,
+  },
+  headerPillText: {
+    color: "#eff6ff",
+    fontSize: 12,
+    fontWeight: "700",
+    letterSpacing: 0.6,
+  },
+  title: {
+    color: "#ffffff",
     fontSize: 28,
-    color: "#fff",
-    textAlign: "center",
     fontWeight: "bold",
-    marginBottom: 30,
+    marginBottom: 8,
+  },
+  subtitle: {
+    color: "#dbeafe",
+    fontSize: 15,
+    lineHeight: 22,
+    marginBottom: 18,
+  },
+  headerInfo: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  infoBox: {
+    flex: 1,
+    backgroundColor: "#ffffff20",
+    borderRadius: 18,
+    padding: 14,
+  },
+  infoLabel: {
+    color: "#dbeafe",
+    fontSize: 13,
+    marginBottom: 6,
+  },
+  infoValue: {
+    color: "#ffffff",
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  card: {
+    backgroundColor: "#ffffff",
+    borderRadius: 28,
+    padding: 22,
+    elevation: 4,
+  },
+  cardTitle: {
+    color: "#111827",
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 6,
+  },
+  cardSubtitle: {
+    color: "#6b7280",
+    fontSize: 14,
+    marginBottom: 18,
   },
   input: {
-    backgroundColor: "#fbff00",
-    padding: 15,
-    borderRadius: 8,
-    marginBottom: 15,
-    fontSize: 16,
-    color: "#ffffff",
+    backgroundColor: "#eff6ff",
     borderWidth: 1,
-    borderColor: "#ffffff",
+    borderColor: "#bfdbfe",
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 16,
+    color: "#111827",
+    marginBottom: 14,
   },
-  button: {
-    backgroundColor: "#ffffff",
-    padding: 15,
-    borderRadius: 8,
+  primaryButton: {
+    backgroundColor: "#2563eb",
+    borderRadius: 16,
+    paddingVertical: 15,
     alignItems: "center",
-    marginTop: 10,
+    marginTop: 4,
   },
-  buttonText: {
-    color: "#000000",
+  primaryButtonText: {
+    color: "#ffffff",
     fontSize: 16,
     fontWeight: "bold",
   },
-  linkButton: {
-    marginTop: 15,
+  secondaryButton: {
     alignItems: "center",
+    marginTop: 16,
   },
-  linkText: {
-    color: "#dfdfdf",
+  secondaryButtonText: {
+    color: "#2563eb",
     fontSize: 14,
+    fontWeight: "600",
   },
 });
