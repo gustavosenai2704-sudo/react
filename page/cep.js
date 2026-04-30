@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { View, TextInput, TouchableOpacity, ImageBackground, Text, StyleSheet, Alert } from 'react-native';
-import { useFonts } from 'expo-font'; 
 import axios from 'axios';
 
 export default function Cep({ navigation }){
@@ -11,14 +10,6 @@ export default function Cep({ navigation }){
   const [cidade, setCidade] = useState("");
   const [estado, setEstado] = useState("");
   
-  const [fonts] = useFonts({ 
-    'spider': require('../assets/fonts/spider.ttf')  
-  });
-
-  if(!fonts){
-    return null;
-  }
-
   async function Buscar(){
 
     const response = await axios.get(`https://viacep.com.br/ws/${cep}/json/`);
@@ -38,7 +29,7 @@ export default function Cep({ navigation }){
       style={styles.ImgBack}
     >
       <View style={styles.overlay}>
-        <Text style={[styles.titulo, { fontFamily: 'spider' }]}>Busca Cep</Text>
+        <Text style={styles.titulo}>Busca Cep</Text>
         <Text style={styles.subtitulo}>Spider</Text>
         
         <TextInput

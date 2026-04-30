@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { ImageBackground, Image, StyleSheet, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 export default function Splash({ navigation }) {
   useEffect(() => {
@@ -11,27 +11,45 @@ export default function Splash({ navigation }) {
   }, [navigation]);
 
   return (
-    <ImageBackground source={require("../assets/splashcity.jpg")} style={style.imgBack} resizeMode="cover">
+    <View style={style.container}>
       <View style={style.overlay}>
-        <Image source={require("../assets/logo.png")} style={style.imgLogo} resizeMode="contain" />
+        <View style={style.logo}>
+          <Text style={style.logoText}>A</Text>
+        </View>
+        <Text style={style.title}>Atividade</Text>
       </View>
-    </ImageBackground>
+    </View>
   );
 }
 
 const style = StyleSheet.create({
-  imgBack: {
+  container: {
     flex: 1,
+    backgroundColor: "#2563eb",
   },
   overlay: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(37, 99, 235, 0.20)",
     padding: 24,
   },
-  imgLogo: {
-    width: 260,
-    height: 260,
+  logo: {
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    backgroundColor: "#ffffff",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  logoText: {
+    color: "#2563eb",
+    fontSize: 72,
+    fontWeight: "bold",
+  },
+  title: {
+    color: "#ffffff",
+    fontSize: 30,
+    fontWeight: "bold",
   },
 });

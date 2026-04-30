@@ -6,6 +6,7 @@ import Cadastro from "./page/cadastro";
 import Splash from "./page/splash";
 import Cep from "./page/cep";
 import Home from "./page/home";
+import Lista from "./page/gustavo";
 
 const Drawer = createDrawerNavigator();
 
@@ -58,6 +59,15 @@ export default function App() {
         <Drawer.Screen
           name="Cep"
           component={Cep}
+          options={{
+            headerTransparent: true,
+            headerTitle: "",
+            headerSearchBarOptions: false,
+          }}
+        />
+        <Drawer.Screen
+          name="Lista"
+          component={Lista}
           options={{
             headerTransparent: true,
             headerTitle: "",

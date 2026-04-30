@@ -50,6 +50,18 @@ export default function Login({ navigation }) {
     }
   }
 
+  async function EntrarParaTestar() {
+    await saveAuthSession({
+      token: "modo-teste",
+      user: {
+        nome: "Usuario Teste",
+        email: "teste@app.com",
+      },
+    });
+
+    navigation.navigate("Cep");
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -99,6 +111,10 @@ export default function Login({ navigation }) {
 
         <TouchableOpacity style={styles.primaryButton} onPress={Logar}>
           <Text style={styles.primaryButtonText}>Entrar</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.testButton} onPress={EntrarParaTestar}>
+          <Text style={styles.testButtonText}>Entrar para testar</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.secondaryButton} onPress={() => navigation.navigate("Cadastro")}>
@@ -216,6 +232,19 @@ const styles = StyleSheet.create({
   secondaryButton: {
     alignItems: "center",
     marginTop: 16,
+  },
+  testButton: {
+    borderWidth: 1,
+    borderColor: "#2563eb",
+    borderRadius: 16,
+    paddingVertical: 15,
+    alignItems: "center",
+    marginTop: 12,
+  },
+  testButtonText: {
+    color: "#2563eb",
+    fontSize: 16,
+    fontWeight: "bold",
   },
   secondaryButtonText: {
     color: "#2563eb",
