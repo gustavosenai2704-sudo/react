@@ -119,7 +119,7 @@ O aplicativo consome APIs externas para:
 
 ## 👨‍💻 Autor
 
-**Gustavo Queiroz**
+**Gustavo Queiroz** **Luiz Kinder**
 🔗 GitHub: https://github.com/gustavosenai2704-sudo
 
 ---
