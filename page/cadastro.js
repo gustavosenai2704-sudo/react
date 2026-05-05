@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import api, { getApiErrorMessage } from "../services/api.js";
 import { saveAuthSession } from "../services/authStore.js";
 
@@ -10,6 +10,7 @@ export default function Cadastro({ navigation }) {
   const [telefone, settelefone] = useState("");
   const [nascimento, setnascimento] = useState("");
   const [genero, setgenero] = useState("");
+  const [loading, setLoading] = useState(false);
 
   function formaApi(data) {
     const [dia, mes, ano] = data.split("/");
@@ -17,38 +18,59 @@ export default function Cadastro({ navigation }) {
   }
 
   async function Cadastrar() {
-    if (nome === "" || email === "" || senha === "" || telefone === "" || nascimento === "" || genero === "") {
+    const nomeLimpo = nome.trim();
+    const emailLimpo = email.trim();
+    const senhaLimpa = senha.trim();
+    const telefoneLimpo = telefone.trim();
+    const nascimentoLimpo = nascimento.trim();
+    const generoLimpo = genero.trim();
+
+    if (loading) {
+      return;
+    }
+
+    if (
+      nomeLimpo === "" ||
+      emailLimpo === "" ||
+      senhaLimpa === "" ||
+      telefoneLimpo === "" ||
+      nascimentoLimpo === "" ||
+      generoLimpo === ""
+    ) {
       Alert.alert("ERRO", "Favor preencher todos os campos!");
       return;
     }
 
-    if (nascimento.split("/").length !== 3) {
+    if (nascimentoLimpo.split("/").length !== 3) {
       Alert.alert("ERRO", "Digite a data no formato dd/mm/aaaa.");
       return;
     }
 
     const values = {
-      nome: nome,
-      email: email,
-      senha: senha,
-      telefone: telefone,
-      nascimento: formaApi(nascimento),
-      genero: genero,
+      nome: nomeLimpo,
+      email: emailLimpo,
+      senha: senhaLimpa,
+      telefone: telefoneLimpo,
+      nascimento: formaApi(nascimentoLimpo),
+      genero: generoLimpo,
     };
 
     console.log("Dados enviados:", values);
+    setLoading(true);
 
     try {
-      const response = await api.post("/cadastro_usuario", values);
+      const response = await api.post("/cadastro_de_usuario", values);
       console.log("Resposta da API:", response.data);
 
-      if (!response.data?.token) {
+      const token = response.data?.token || response.data?.access_token;
+
+      if (!token) {
         Alert.alert("ERRO", "A API cadastrou o usuario, mas nao retornou o token.");
         return;
       }
 
       await saveAuthSession({
-        token: response.data.token,
+        token,
         user: response.data.user || {
           nome: values.nome,
           email: values.email,
@@ -62,6 +84,8 @@ export default function Cadastro({ navigation }) {
 
       console.log("Erro completo:", error.response?.data || error.message);
       Alert.alert("ERRO", String(errorMessage));
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -146,8 +170,16 @@ export default function Cadastro({ navigation }) {
           onChangeText={setgenero}
         />
 
-        <TouchableOpacity style={styles.primaryButton} onPress={Cadastrar}>
-          <Text style={styles.primaryButtonText}>Cadastrar</Text>
+        <TouchableOpacity
+          style={[styles.primaryButton, loading && styles.disabledButton]}
+          onPress={Cadastrar}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#ffffff" />
+          ) : (
+            <Text style={styles.primaryButtonText}>Cadastrar</Text>
+          )}
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.secondaryButton} onPress={() => navigation.navigate("Login")}>
@@ -267,5 +299,8 @@ const styles = StyleSheet.create({
     color: "#2563eb",
     fontSize: 14,
     fontWeight: "600",
+  },
+  disabledButton: {
+    opacity: 0.7,
   },
 });

@@ -1,25 +1,35 @@
 import React, { useState } from "react";
-import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import api, { getApiErrorMessage, setAuthorizationToken } from "../services/api.js";
 import { saveAuthSession } from "../services/authStore.js";
 
 export default function Login({ navigation }) {
   const [user, setUser] = useState("");
   const [pass, setPass] = useState("");
+  const [loading, setLoading] = useState(false);
 
   async function Logar() {
-    if (user === "" || pass === "") {
+    const email = user.trim();
+    const senha = pass.trim();
+
+    if (loading) {
+      return;
+    }
+
+    if (email === "" || senha === "") {
       Alert.alert("ERRO", "Favor preencher todos os campos!");
       return;
     }
 
+    setLoading(true);
+
     try {
       const response = await api.post("/login", {
-        email: user,
-        senha: pass,
+        email,
+        senha,
       });
 
-      const token = response.data?.token;
+      const token = response.data?.token || response.data?.access_token;
 
       if (!token) {
         Alert.alert("ERRO", "A API nao retornou o token do usuario.");
@@ -28,17 +38,27 @@ export default function Login({ navigation }) {
 
       setAuthorizationToken(token);
 
-      const validationResponse = await api.get("/validar_token");
+      let validatedUser = null;
 
-      if (validationResponse.data?.valid === false) {
-        setAuthorizationToken(null);
-        Alert.alert("ERRO", "Token invalido. Faca login novamente.");
-        return;
+      try {
+        const validationResponse = await api.get("/validar_token");
+
+        if (validationResponse.data?.valid === false) {
+          setAuthorizationToken(null);
+          Alert.alert("ERRO", "Token invalido. Faca login novamente.");
+          return;
+        }
+
+        validatedUser = validationResponse.data?.user || null;
+      } catch (validationError) {
+        console.log("Nao foi possivel validar o token agora:", validationError.response?.data || validationError.message);
       }
 
       await saveAuthSession({
         token,
-        user: validationResponse.data?.user || response.data.user || null,
+        user: validatedUser || response.data?.user || {
+          email,
+        },
       });
 
       Alert.alert("Sucesso!", "Usuario logado com sucesso!");
@@ -47,15 +67,19 @@ export default function Login({ navigation }) {
       setAuthorizationToken(null);
       const errorMessage = getApiErrorMessage(error, "Usuario nao cadastrado!");
       Alert.alert("ERRO!", String(errorMessage));
+    } finally {
+      setLoading(false);
     }
   }
 
-  async function EntrarParaTestar() {
+  async function EntrarSemBanco() {
+    const email = user.trim() || "local@app.com";
+
     await saveAuthSession({
-      token: "modo-teste",
+      token: "modo-local",
       user: {
-        nome: "Usuario Teste",
-        email: "teste@app.com",
+        nome: "Usuario Local",
+        email,
       },
     });
 
@@ -109,12 +133,24 @@ export default function Login({ navigation }) {
           onChangeText={setPass}
         />
 
-        <TouchableOpacity style={styles.primaryButton} onPress={Logar}>
-          <Text style={styles.primaryButtonText}>Entrar</Text>
+        <TouchableOpacity
+          style={[styles.primaryButton, loading && styles.disabledButton]}
+          onPress={Logar}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#ffffff" />
+          ) : (
+            <Text style={styles.primaryButtonText}>Entrar</Text>
+          )}
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.testButton} onPress={EntrarParaTestar}>
-          <Text style={styles.testButtonText}>Entrar para testar</Text>
+        <TouchableOpacity
+          style={[styles.localButton, loading && styles.disabledButton]}
+          onPress={EntrarSemBanco}
+          disabled={loading}
+        >
+          <Text style={styles.localButtonText}>Entrar sem banco</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.secondaryButton} onPress={() => navigation.navigate("Cadastro")}>
@@ -233,7 +269,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 16,
   },
-  testButton: {
+  localButton: {
     borderWidth: 1,
     borderColor: "#2563eb",
     borderRadius: 16,
@@ -241,7 +277,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 12,
   },
-  testButtonText: {
+  localButtonText: {
     color: "#2563eb",
     fontSize: 16,
     fontWeight: "bold",
@@ -250,5 +286,8 @@ const styles = StyleSheet.create({
     color: "#2563eb",
     fontSize: 14,
     fontWeight: "600",
+  },
+  disabledButton: {
+    opacity: 0.7,
   },
 });

@@ -29,13 +29,19 @@ export function getApiErrorMessage(error, fallbackMessage) {
     return "Network Error: o app nao conseguiu alcancar a API. Confira se o IP/porta estao corretos, se o backend esta rodando e se o celular/emulador esta na mesma rede.";
   }
 
-  return (
-    error.response?.data?.message ||
-    error.response?.data?.error ||
-    JSON.stringify(error.response?.data?.errors) ||
-    error.message ||
-    fallbackMessage
-  );
+  const errors = error.response?.data?.errors;
+
+  if (errors) {
+    if (Array.isArray(errors)) {
+      return errors.join("\n");
+    }
+
+    if (typeof errors === "object") {
+      return Object.values(errors).flat().join("\n");
+    }
+  }
+
+  return error.response?.data?.message || error.response?.data?.error || error.message || fallbackMessage;
 }
 
 export default api;
