@@ -1,7 +1,20 @@
-import { useEffect } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { useEffect, useState } from "react";
+import { StyleSheet, Text, View, Image, ImageBackground } from "react-native";
+import * as Font from 'expo-font';
 
 export default function Splash({ navigation }) {
+  const [fontLoaded, setFontLoaded] = useState(false);
+
+  useEffect(() => {
+    async function loadFonts() {
+      await Font.loadAsync({
+        'spider': require('../assets/fonts/spider.ttf'),
+      });
+      setFontLoaded(true);
+    }
+    loadFonts();
+  }, []);
+
   useEffect(() => {
     const time = setTimeout(() => {
       navigation.navigate("Login");
@@ -11,45 +24,36 @@ export default function Splash({ navigation }) {
   }, [navigation]);
 
   return (
-    <View style={style.container}>
+    <ImageBackground source={require('../assets/splashcity.jpg')} style={style.container}>
       <View style={style.overlay}>
-        <View style={style.logo}>
-          <Text style={style.logoText}>A</Text>
-        </View>
-        <Text style={style.title}>Atividade</Text>
+        <Image source={require('../assets/logo.png')} style={style.logoImage} />
+        
       </View>
-    </View>
+    </ImageBackground>
   );
 }
 
 const style = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#2563eb",
   },
   overlay: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     padding: 24,
+   // semi-transparent overlay
   },
-  logo: {
-    width: 150,
-    height: 150,
+  logoImage: {
+    width: 300,
+    height: 300,
     borderRadius: 75,
-    backgroundColor: "#ffffff",
-    justifyContent: "center",
-    alignItems: "center",
     marginBottom: 20,
-  },
-  logoText: {
-    color: "#2563eb",
-    fontSize: 72,
-    fontWeight: "bold",
   },
   title: {
     color: "#ffffff",
     fontSize: 30,
     fontWeight: "bold",
+    fontFamily: 'spider',
   },
 });

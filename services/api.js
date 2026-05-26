@@ -1,6 +1,6 @@
 import axios from "axios";
 
-export const API_URL = "http://10.122.41.181:8000/api";
+export const API_URL = "http://10.122.41.167:8000/api";
 
 const api = axios.create({
   baseURL: API_URL,
@@ -29,6 +29,10 @@ export function getApiErrorMessage(error, fallbackMessage) {
     return "Network Error: o app nao conseguiu alcancar a API. Confira se o IP/porta estao corretos, se o backend esta rodando e se o celular/emulador esta na mesma rede.";
   }
 
+  if (error.response.status === 404) {
+    return "Rota nao encontrada na API. Confira se o backend tem esta rota cadastrada em routes/api.php.";
+  }
+
   const errors = error.response?.data?.errors;
 
   if (errors) {
@@ -41,7 +45,21 @@ export function getApiErrorMessage(error, fallbackMessage) {
     }
   }
 
-  return error.response?.data?.message || error.response?.data?.error || error.message || fallbackMessage;
+  return error.response?.data?.message || error.response?.data?.msg || error.response?.data?.error || error.message || fallbackMessage;
+}
+
+export function toFormUrlEncoded(data) {
+  return Object.entries(data)
+    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value ?? "")}`)
+    .join("&");
+}
+
+export function getApiList(data) {
+  if (Array.isArray(data)) {
+    return data;
+  }
+
+  return data?.climas || data?.clima || data?.dados || data?.data || data?.items || [];
 }
 
 export default api;

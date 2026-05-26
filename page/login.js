@@ -24,12 +24,19 @@ export default function Login({ navigation }) {
     setLoading(true);
 
     try {
-      const response = await api.post("/login", {
-        email,
-        senha,
+      const response = await api.get("/login_novo", {
+        params: {
+          email,
+          senha,
+        },
       });
 
-      const token = response.data?.token || response.data?.access_token;
+      const token =
+        response.data?.token ||
+        response.data?.access_token ||
+        response.data?.user?.token ||
+        response.data?.usuario?.token ||
+        response.data?.dados?.token;
 
       if (!token) {
         Alert.alert("ERRO", "A API nao retornou o token do usuario.");
@@ -56,7 +63,7 @@ export default function Login({ navigation }) {
 
       await saveAuthSession({
         token,
-        user: validatedUser || response.data?.user || {
+        user: validatedUser || response.data?.user || response.data?.usuario || response.data?.dados || {
           email,
         },
       });
@@ -70,20 +77,6 @@ export default function Login({ navigation }) {
     } finally {
       setLoading(false);
     }
-  }
-
-  async function EntrarSemBanco() {
-    const email = user.trim() || "local@app.com";
-
-    await saveAuthSession({
-      token: "modo-local",
-      user: {
-        nome: "Usuario Local",
-        email,
-      },
-    });
-
-    navigation.navigate("Cep");
   }
 
   return (
@@ -143,14 +136,6 @@ export default function Login({ navigation }) {
           ) : (
             <Text style={styles.primaryButtonText}>Entrar</Text>
           )}
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.localButton, loading && styles.disabledButton]}
-          onPress={EntrarSemBanco}
-          disabled={loading}
-        >
-          <Text style={styles.localButtonText}>Entrar sem banco</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.secondaryButton} onPress={() => navigation.navigate("Cadastro")}>
@@ -268,19 +253,6 @@ const styles = StyleSheet.create({
   secondaryButton: {
     alignItems: "center",
     marginTop: 16,
-  },
-  localButton: {
-    borderWidth: 1,
-    borderColor: "#2563eb",
-    borderRadius: 16,
-    paddingVertical: 15,
-    alignItems: "center",
-    marginTop: 12,
-  },
-  localButtonText: {
-    color: "#2563eb",
-    fontSize: 16,
-    fontWeight: "bold",
   },
   secondaryButtonText: {
     color: "#2563eb",

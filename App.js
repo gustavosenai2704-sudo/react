@@ -7,6 +7,9 @@ import Splash from "./page/splash";
 import Cep from "./page/cep";
 import Home from "./page/home";
 import Lista from "./page/gustavo";
+import Clima from "./page/clima";
+import Edita from "./page/edita";
+import Deleta from "./page/deleta";
 
 const Drawer = createDrawerNavigator();
 
@@ -72,6 +75,38 @@ export default function App() {
             headerTransparent: true,
             headerTitle: "",
             headerSearchBarOptions: false,
+            drawerLabel: "Climas",
+          }}
+        />
+        <Drawer.Screen
+          name="Clima"
+          component={Clima}
+          options={{
+            headerTransparent: true,
+            headerTitle: "",
+            headerSearchBarOptions: false,
+            drawerLabel: "Cadastrar clima",
+          }}
+        />
+        <Drawer.Screen
+          name="Edita"
+          component={Edita}
+          options={{
+            headerTransparent: true,
+            headerTitle: "",
+            headerSearchBarOptions: false,
+            drawerLabel: () => null,
+            drawerItemStyle: { display: "none" },
+          }}
+        />
+        <Drawer.Screen
+          name="Deleta"
+          component={Deleta}
+          options={{
+            headerTransparent: true,
+            headerTitle: "",
+            headerSearchBarOptions: false,
+            drawerLabel: "Deletar clima",
           }}
         />
       </Drawer.Navigator>

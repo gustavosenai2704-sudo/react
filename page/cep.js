@@ -1,129 +1,173 @@
-import { useState } from 'react';
-import { View, TextInput, TouchableOpacity, ImageBackground, Text, StyleSheet, Alert } from 'react-native';
-import axios from 'axios';
+import { useState } from "react";
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import axios from "axios";
 
-export default function Cep({ navigation }){
-  
+export default function Cep({ navigation }) {
   const [cep, setCep] = useState("");
   const [endereco, setEndereco] = useState("");
   const [bairro, setBairro] = useState("");
   const [cidade, setCidade] = useState("");
   const [estado, setEstado] = useState("");
-  
-  async function Buscar(){
+  const [loading, setLoading] = useState(false);
 
-    const response = await axios.get(`https://viacep.com.br/ws/${cep}/json/`);
-    console.log(response.data);
-    
+  async function Buscar() {
+    const cepLimpo = cep.replace(/\D/g, "");
 
-    setEndereco(response.data.logradouro);
-    setBairro(response.data.bairro);
-    setCidade(response.data.localidade);
-    setEstado(response.data.uf);
+    if (cepLimpo.length !== 8) {
+      Alert.alert("CEP invalido", "Digite um CEP com 8 numeros.");
+      return;
+    }
 
+    setLoading(true);
+
+    try {
+      const response = await axios.get(`https://viacep.com.br/ws/${cepLimpo}/json/`);
+      console.log(response.data);
+
+      if (response.data?.erro) {
+        Alert.alert("CEP nao encontrado", "Confira o numero digitado e tente novamente.");
+        return;
+      }
+
+      setEndereco(response.data.logradouro || "");
+      setBairro(response.data.bairro || "");
+      setCidade(response.data.localidade || "");
+      setEstado(response.data.uf || "");
+    } catch (error) {
+      console.log("ERRO ao buscar CEP", error.message);
+      Alert.alert("Erro", "Nao foi possivel buscar o CEP agora.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
-    <ImageBackground 
-      source={{ uri: 'https://blog.shoppub.com.br/wp-content/uploads/2025/02/faixa-de-CEP-scaled.jpg' }} 
-      style={styles.ImgBack}
-    >
-      <View style={styles.overlay}>
-        <Text style={styles.titulo}>Busca Cep</Text>
-        <Text style={styles.subtitulo}>Spider</Text>
-        
+    <ScrollView style={styles.screen} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <View style={styles.header}>
+        <Text style={styles.badge}>CONSULTA RAPIDA</Text>
+        <Text style={styles.titulo}>Busca CEP</Text>
+        <Text style={styles.subtitulo}>Digite o CEP para completar os dados do endereco.</Text>
+      </View>
+
+      <View style={styles.card}>
         <TextInput
           style={styles.input}
-          placeholder="Cep"
-          placeholderTextColor="#999"
+          placeholder="CEP"
+          placeholderTextColor="#6b7280"
           value={cep}
-          onChangeText={setCep}
+          onChangeText={(value) => setCep(value.replace(/\D/g, ""))}
           keyboardType="numeric"
           maxLength={8}
         />
-        
+
         <TextInput
           style={styles.input}
-          placeholder="Endereço"
-          placeholderTextColor="#999"
+          placeholder="Endereco"
+          placeholderTextColor="#6b7280"
           value={endereco}
           onChangeText={setEndereco}
         />
-        
+
         <TextInput
           style={styles.input}
           placeholder="Bairro"
-          placeholderTextColor="#999"
+          placeholderTextColor="#6b7280"
           value={bairro}
           onChangeText={setBairro}
         />
-        
+
         <TextInput
           style={styles.input}
           placeholder="Cidade"
-          placeholderTextColor="#999"
+          placeholderTextColor="#6b7280"
           value={cidade}
           onChangeText={setCidade}
         />
-        
+
         <TextInput
           style={styles.input}
           placeholder="Estado"
-          placeholderTextColor="#999"
+          placeholderTextColor="#6b7280"
           value={estado}
           onChangeText={setEstado}
         />
-        
-        <TouchableOpacity style={styles.button} onPress={Buscar}>
-          <Text style={styles.buttonText}>BUSCAR CEP</Text>
+
+        <TouchableOpacity style={[styles.button, loading && styles.disabledButton]} onPress={Buscar} disabled={loading}>
+          {loading ? <ActivityIndicator color="#ffffff" /> : <Text style={styles.buttonText}>Buscar CEP</Text>}
         </TouchableOpacity>
       </View>
-    </ImageBackground>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  ImgBack: {
+  screen: {
     flex: 1,
+    backgroundColor: "#f3f4f6",
   },
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'center',
-    padding: 25,
+  content: {
+    flexGrow: 1,
+    justifyContent: "center",
+    padding: 20,
+  },
+  header: {
+    backgroundColor: "#2563eb",
+    borderRadius: 28,
+    padding: 24,
+    marginBottom: 18,
+  },
+  badge: {
+    alignSelf: "flex-start",
+    backgroundColor: "#ffffff24",
+    borderRadius: 999,
+    color: "#eff6ff",
+    fontSize: 12,
+    fontWeight: "700",
+    marginBottom: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
   titulo: {
-    fontSize: 36,
-    color: "#f3eb0d",
-    textAlign: 'center',
-    fontWeight: '900',
-    marginBottom: 5,
+    color: "#ffffff",
+    fontSize: 30,
+    fontWeight: "bold",
+    marginBottom: 8,
   },
   subtitulo: {
-    fontSize: 24,
-    color: "#f3eb0d",
-    textAlign: 'center',
-    marginBottom: 20,
+    color: "#dbeafe",
+    fontSize: 15,
+    lineHeight: 22,
+  },
+  card: {
+    backgroundColor: "#ffffff",
+    borderRadius: 24,
+    padding: 20,
+    elevation: 4,
   },
   input: {
-    borderWidth: 2,
-    borderColor: '#f3eb0d',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 10,
-    color: '#FFFFFF',
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: "#eff6ff",
+    borderWidth: 1,
+    borderColor: "#bfdbfe",
+    borderRadius: 14,
+    color: "#111827",
+    fontSize: 16,
+    marginBottom: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 13,
   },
   button: {
-    backgroundColor: '#f3eb0d',
-    padding: 18,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 10,
+    alignItems: "center",
+    backgroundColor: "#2563eb",
+    borderRadius: 14,
+    marginTop: 4,
+    paddingVertical: 15,
   },
   buttonText: {
-    color: '#000',
-    fontWeight: 'bold',
-    fontSize: 18,
+    color: "#ffffff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  disabledButton: {
+    opacity: 0.7,
   },
 });

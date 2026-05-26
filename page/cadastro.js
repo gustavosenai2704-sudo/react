@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import api, { getApiErrorMessage } from "../services/api.js";
+import api, { getApiErrorMessage, toFormUrlEncoded } from "../services/api.js";
 import { saveAuthSession } from "../services/authStore.js";
 
 export default function Cadastro({ navigation }) {
@@ -53,28 +53,57 @@ export default function Cadastro({ navigation }) {
       telefone: telefoneLimpo,
       nascimento: formaApi(nascimentoLimpo),
       genero: generoLimpo,
+      receber_email: "nao",
     };
 
     console.log("Dados enviados:", values);
     setLoading(true);
 
     try {
-      const response = await api.post("/cadastro_de_usuario", values);
+      const response = await api.post("/cadastro_usuario", toFormUrlEncoded(values), {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      });
       console.log("Resposta da API:", response.data);
 
-      const token = response.data?.token || response.data?.access_token;
+      let token = response.data?.token || response.data?.access_token || response.data?.user?.token || response.data?.usuario?.token || response.data?.dados?.token;
+      let user = response.data?.user || response.data?.usuario || response.data?.dados || response.data?.data || {
+        nome: values.nome,
+        email: values.email,
+      };
 
       if (!token) {
-        Alert.alert("ERRO", "A API cadastrou o usuario, mas nao retornou o token.");
+        try {
+          const loginResponse = await api.get("/login_novo", {
+            params: {
+              email: values.email,
+              senha: senhaLimpa,
+            },
+          });
+
+          token =
+            loginResponse.data?.token ||
+            loginResponse.data?.access_token ||
+            loginResponse.data?.user?.token ||
+            loginResponse.data?.usuario?.token ||
+            loginResponse.data?.dados?.token;
+
+          user = loginResponse.data?.user || loginResponse.data?.usuario || loginResponse.data?.dados || user;
+        } catch (loginError) {
+          console.log("Usuario cadastrado, mas nao foi possivel logar automaticamente:", loginError.response?.data || loginError.message);
+        }
+      }
+
+      if (!token) {
+        Alert.alert("Sucesso", "Usuario cadastrado. Agora faca login para continuar.");
+        navigation.navigate("Login");
         return;
       }
 
       await saveAuthSession({
         token,
-        user: response.data.user || {
-          nome: values.nome,
-          email: values.email,
-        },
+        user,
       });
 
       Alert.alert("Sucesso!", "Usuario cadastrado e autenticado com sucesso!");
