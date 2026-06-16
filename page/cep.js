@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import axios from "axios";
 
 export default function Cep({ navigation }) {
@@ -9,6 +9,8 @@ export default function Cep({ navigation }) {
   const [cidade, setCidade] = useState("");
   const [estado, setEstado] = useState("");
   const [loading, setLoading] = useState(false);
+  const [pokemon, setPokemon] = useState(null);
+  const [loadingPokemon, setLoadingPokemon] = useState(false);
 
   async function Buscar() {
     const cepLimpo = cep.replace(/\D/g, "");
@@ -38,6 +40,29 @@ export default function Cep({ navigation }) {
       Alert.alert("Erro", "Nao foi possivel buscar o CEP agora.");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function BuscarPokemon() {
+    setLoadingPokemon(true);
+
+    try {
+      const response = await axios.get("https://pokeapi.co/api/v2/pokemon/ditto");
+      console.log(response.data);
+
+      setPokemon({
+        nome: response.data.name,
+        altura: response.data.height,
+        peso: response.data.weight,
+        experiencia: response.data.base_experience,
+        imagem: response.data.sprites?.front_default,
+        tipos: response.data.types?.map((item) => item.type.name).join(", "),
+      });
+    } catch (error) {
+      console.log("ERRO ao buscar Pokemon", error.message);
+      Alert.alert("Erro", "Nao foi possivel buscar o Pokemon agora.");
+    } finally {
+      setLoadingPokemon(false);
     }
   }
 
@@ -95,6 +120,25 @@ export default function Cep({ navigation }) {
         <TouchableOpacity style={[styles.button, loading && styles.disabledButton]} onPress={Buscar} disabled={loading}>
           {loading ? <ActivityIndicator color="#ffffff" /> : <Text style={styles.buttonText}>Buscar CEP</Text>}
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.pokemonButton, loadingPokemon && styles.disabledButton]}
+          onPress={BuscarPokemon}
+          disabled={loadingPokemon}
+        >
+          {loadingPokemon ? <ActivityIndicator color="#ffffff" /> : <Text style={styles.buttonText}>Buscar Ditto</Text>}
+        </TouchableOpacity>
+
+        {pokemon && (
+          <View style={styles.pokemonCard}>
+            {!!pokemon.imagem && <Image style={styles.pokemonImage} source={{ uri: pokemon.imagem }} />}
+            <Text style={styles.pokemonTitle}>{pokemon.nome}</Text>
+            <Text style={styles.pokemonText}>Tipo: {pokemon.tipos}</Text>
+            <Text style={styles.pokemonText}>Altura: {pokemon.altura}</Text>
+            <Text style={styles.pokemonText}>Peso: {pokemon.peso}</Text>
+            <Text style={styles.pokemonText}>Experiencia base: {pokemon.experiencia}</Text>
+          </View>
+        )}
       </View>
     </ScrollView>
   );
@@ -169,5 +213,38 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.7,
+  },
+  pokemonButton: {
+    alignItems: "center",
+    backgroundColor: "#ef4444",
+    borderRadius: 14,
+    marginTop: 12,
+    paddingVertical: 15,
+  },
+  pokemonCard: {
+    alignItems: "center",
+    backgroundColor: "#fef2f2",
+    borderColor: "#fecaca",
+    borderRadius: 14,
+    borderWidth: 1,
+    marginTop: 14,
+    padding: 14,
+  },
+  pokemonImage: {
+    height: 96,
+    marginBottom: 4,
+    width: 96,
+  },
+  pokemonTitle: {
+    color: "#111827",
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 8,
+    textTransform: "capitalize",
+  },
+  pokemonText: {
+    color: "#4b5563",
+    fontSize: 15,
+    marginBottom: 4,
   },
 });

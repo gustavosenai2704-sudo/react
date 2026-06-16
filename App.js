@@ -10,6 +10,7 @@ import Lista from "./page/gustavo";
 import Clima from "./page/clima";
 import Edita from "./page/edita";
 import Deleta from "./page/deleta";
+import Pokedex from "./page/pokedex";
 
 const Drawer = createDrawerNavigator();
 
@@ -62,6 +63,15 @@ export default function App() {
         <Drawer.Screen
           name="Cep"
           component={Cep}
+          options={{
+            headerTransparent: true,
+            headerTitle: "",
+            headerSearchBarOptions: false,
+          }}
+        />
+        <Drawer.Screen
+          name="Pokedex"
+          component={Pokedex}
           options={{
             headerTransparent: true,
             headerTitle: "",
